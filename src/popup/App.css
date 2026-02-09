@@ -1,0 +1,210 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: #fff;
+}
+
+.app {
+  padding: 12px;
+}
+
+h1 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.loading {
+  color: #666;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.error {
+  color: #d32f2f;
+  font-size: 12px;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  background: #fde8e8;
+  border-radius: 4px;
+}
+
+.empty {
+  color: #666;
+  font-size: 13px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+/* Create form */
+.create-form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.create-form input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+}
+
+.create-form input:focus {
+  border-color: #4285f4;
+}
+
+.create-form button {
+  padding: 6px 12px;
+  background: #4285f4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.create-form button:hover:not(:disabled) {
+  background: #3367d6;
+}
+
+.create-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Set list */
+.set-list {
+  list-style: none;
+}
+
+.set-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.set-item:last-child {
+  border-bottom: none;
+}
+
+.set-item.active .set-name {
+  font-weight: 600;
+}
+
+.set-name {
+  flex: 1;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  color: inherit;
+  font-family: inherit;
+}
+
+.set-name:hover {
+  background: #f5f5f5;
+}
+
+.set-item.active .set-name {
+  cursor: default;
+}
+
+.set-item.active .set-name:hover {
+  background: transparent;
+}
+
+.set-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #4285f4;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.set-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #888;
+  border-radius: 4px;
+}
+
+.btn-icon:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.btn-delete:hover {
+  color: #d32f2f;
+}
+
+.confirm-delete {
+  display: flex;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.btn-confirm {
+  padding: 2px 8px;
+  background: #d32f2f;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-cancel {
+  padding: 2px 8px;
+  background: #e0e0e0;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Rename form */
+.rename-form {
+  flex: 1;
+}
+
+.rename-form input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #4285f4;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+}
