@@ -28,3 +28,29 @@ Requires Node >= 18 (`.nvmrc` specifies Node 24). Run `nvm use` before building.
 - `src/popup/App.tsx` — Main popup UI
 - `src/popup/components/` — SetList, CreateSetForm components
 - `public/manifest.json` — Chrome extension manifest
+
+## Git Workflow
+
+### Branch Strategy
+- Main branch: `main`
+- Feature branches: `feature/feature-name`
+- Always create new branch for features
+
+### After Completing a Feature
+1. Create a new branch: `git checkout -b feature/feature-name`
+2. Stage all changes: `git add .`
+3. Commit with descriptive message
+4. Push to GitHub: `git push origin feature/feature-name`
+5. Create Pull Request on GitHub
+
+### Claude's Responsibilities
+When I say "implement feature X and create PR":
+- Create feature branch
+- Implement the feature
+- Write tests if applicable
+- Commit changes with clear message
+- Push to GitHub
+- After pushing, create PR with:
+```bash
+gh pr create --title "feat: feature name" --body "Description"
+```
