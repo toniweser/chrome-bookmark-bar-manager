@@ -2,10 +2,9 @@ import { useState } from "react";
 
 interface Props {
   onCreateSet: (name: string) => Promise<void>;
-  hasSets: boolean;
 }
 
-export default function CreateSetForm({ onCreateSet, hasSets }: Props) {
+export default function CreateSetForm({ onCreateSet }: Props) {
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -29,7 +28,7 @@ export default function CreateSetForm({ onCreateSet, hasSets }: Props) {
         disabled={creating}
       />
       <button type="submit" disabled={!name.trim() || creating}>
-        {hasSets ? "Save bar as set" : "Create set"}
+        Create set
       </button>
     </form>
   );

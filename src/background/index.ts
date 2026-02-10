@@ -19,7 +19,7 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
     case "SWITCH_SET":
       return { success: true, data: await switchSet(message.setId) };
     case "DELETE_SET":
-      return { success: true, data: await deleteSet(message.setId) };
+      return { success: true, data: await deleteSet(message.setId, message.mergeTargetId) };
     case "RENAME_SET":
       return { success: true, data: await renameSet(message.setId, message.name) };
   }
