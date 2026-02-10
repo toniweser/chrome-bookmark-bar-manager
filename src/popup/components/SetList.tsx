@@ -4,17 +4,16 @@ import type { BookmarkSet } from "../../shared/types";
 interface Props {
   sets: BookmarkSet[];
   onSwitch: (setId: string) => Promise<void>;
-  onDelete: (setId: string) => Promise<void>;
+  onDelete: (set: BookmarkSet) => void;
   onRename: (setId: string, name: string) => Promise<void>;
 }
 
 export default function SetList({ sets, onSwitch, onDelete, onRename }: Props) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   if (sets.length === 0) {
-    return <p className="empty">No sets yet. Save your current bookmark bar as a set to get started.</p>;
+    return <p className="empty">No sets yet. Create one to get started.</p>;
   }
 
   const startRename = (set: BookmarkSet) => {
@@ -27,11 +26,6 @@ export default function SetList({ sets, onSwitch, onDelete, onRename }: Props) {
       await onRename(setId, renameValue.trim());
     }
     setRenamingId(null);
-  };
-
-  const handleDelete = async (setId: string) => {
-    await onDelete(setId);
-    setConfirmDeleteId(null);
   };
 
   return (
@@ -80,30 +74,13 @@ export default function SetList({ sets, onSwitch, onDelete, onRename }: Props) {
                 >
                   ✏
                 </button>
-                {confirmDeleteId === set.id ? (
-                  <span className="confirm-delete">
-                    <button
-                      className="btn-confirm"
-                      onClick={() => handleDelete(set.id)}
-                    >
-                      Yes
-                    </button>
-                    <button
-                      className="btn-cancel"
-                      onClick={() => setConfirmDeleteId(null)}
-                    >
-                      No
-                    </button>
-                  </span>
-                ) : (
-                  <button
-                    className="btn-icon btn-delete"
-                    onClick={() => setConfirmDeleteId(set.id)}
-                    title="Delete"
-                  >
-                    ✕
-                  </button>
-                )}
+                <button
+                  className="btn-icon btn-delete"
+                  onClick={() => onDelete(set)}
+                  title="Delete"
+                >
+                  ✕
+                </button>
               </div>
             </>
           )}
