@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Bookmark Bar Manager",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "Switch between multiple bookmark bar layouts",
   "permissions": ["bookmarks", "storage"],
   "action": {

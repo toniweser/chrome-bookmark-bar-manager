@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
-    "build": "tsc && vite build"
+    "build": "tsc && vite build",
+    "zip": "tsc && vite build && cd dist && zip -r ../bookmark-bar-manager.zip ."
   },
   "dependencies": {
     "react": "^19.0.0",
