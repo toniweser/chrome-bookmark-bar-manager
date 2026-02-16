@@ -1,7 +1,13 @@
 import type { BookmarkSet } from "../shared/types";
+import {
+  clearBar,
+  populateBarFromFolder,
+  syncBarToFolder,
+  reconcileBar,
+  migrateIfNeeded,
+} from "./sync";
 
 const ROOT_FOLDER_NAME = "_BookmarkBarSets";
-const BOOKMARKS_BAR_ID = "1";
 const OTHER_BOOKMARKS_ID = "2";
 const INITIAL_SET_NAME = "Your current bookmark bar";
 
@@ -15,7 +21,7 @@ async function ensureRootFolder(): Promise<chrome.bookmarks.BookmarkTreeNode> {
   });
 }
 
-async function getActiveSetId(): Promise<string | null> {
+export async function getActiveSetId(): Promise<string | null> {
   const result = await chrome.storage.local.get("activeSetId");
   return result.activeSetId ?? null;
 }
@@ -40,29 +46,36 @@ export async function getSets(): Promise<BookmarkSet[]> {
       title: INITIAL_SET_NAME,
     });
     await setActiveSetId(folder.id);
+    // Migration: copy current bar contents into the new folder
+    await migrateIfNeeded(folder.id);
     return [{ id: folder.id, name: folder.title, isActive: true }];
   }
 
-  // Recovery: if activeSetId is set but doesn't match any folder, clear it
+  // Recovery: if activeSetId doesn't match any folder, clear it
   if (activeSetId && !children.some((c) => c.id === activeSetId)) {
     activeSetId = null;
     await setActiveSetId(null);
   }
 
-  // If no activeSetId, try to recover by finding the empty set folder
+  // If no activeSetId, pick the first folder
   if (!activeSetId && children.length > 0) {
-    for (const child of children) {
-      const contents = await chrome.bookmarks.getChildren(child.id);
-      if (contents.length === 0) {
-        activeSetId = child.id;
-        await setActiveSetId(child.id);
-        break;
-      }
+    const firstFolder = children.find((c) => !c.url);
+    if (firstFolder) {
+      activeSetId = firstFolder.id;
+      await setActiveSetId(firstFolder.id);
+      // Migrate and populate bar from this folder
+      await migrateIfNeeded(firstFolder.id);
+      await populateBarFromFolder(firstFolder.id);
     }
   }
 
+  // Run migration for active set if needed (old format → new format)
+  if (activeSetId) {
+    await migrateIfNeeded(activeSetId);
+  }
+
   return children
-    .filter((c) => !c.url) // only folders
+    .filter((c) => !c.url)
     .map((c) => ({
       id: c.id,
       name: c.title,
@@ -83,13 +96,18 @@ export async function switchSet(targetId: string): Promise<BookmarkSet[]> {
   const activeSetId = await getActiveSetId();
   if (activeSetId === targetId) return getSets();
 
-  // Move current bar contents into active set's folder
+  // 1. Sync any bar edits back to the current active set's folder
   if (activeSetId) {
-    await moveChildren(BOOKMARKS_BAR_ID, activeSetId);
+    await syncBarToFolder(activeSetId);
   }
 
-  // Move target set's contents into bar
-  await moveChildren(targetId, BOOKMARKS_BAR_ID);
+  // 2. Clear bar
+  await clearBar();
+
+  // 3. Copy target set's folder contents to bar
+  await populateBarFromFolder(targetId);
+
+  // 4. Update active set
   await setActiveSetId(targetId);
 
   return getSets();
@@ -108,69 +126,56 @@ export async function deleteSet(
   const isActive = setId === activeSetId;
 
   if (isLastSet) {
-    // Last set: keep bookmarks in bar, delete the set folder
+    // Last set: clear bar, delete folder, leave bar empty
     if (isActive) {
-      // Bookmarks already in bar, folder is empty
-      await chrome.bookmarks.removeTree(setId);
-    } else {
-      // Edge case: move folder contents to bar, then delete
-      await moveChildren(setId, BOOKMARKS_BAR_ID);
-      await chrome.bookmarks.removeTree(setId);
+      await clearBar();
     }
+    await chrome.bookmarks.removeTree(setId);
     await setActiveSetId(null);
     return getSets();
   }
 
   if (mergeTargetId) {
-    // Merge bookmarks into target set
-    const targetIsActive = mergeTargetId === activeSetId;
+    // Merge: move source folder's children into target folder
+    if (isActive) {
+      // Sync bar edits to active folder first
+      await syncBarToFolder(setId);
+    }
+
+    // Move children from source folder to target folder
+    const sourceChildren = await chrome.bookmarks.getChildren(setId);
+    for (const child of sourceChildren) {
+      await chrome.bookmarks.move(child.id, { parentId: mergeTargetId });
+    }
+
+    // Delete the now-empty source folder
+    await chrome.bookmarks.removeTree(setId);
 
     if (isActive) {
-      // Source is active: bar has the bookmarks
-      if (targetIsActive) {
-        // Can't happen (only one active), but safety check
-        await chrome.bookmarks.removeTree(setId);
-      } else {
-        // Move bar contents to target's folder
-        await moveChildren(BOOKMARKS_BAR_ID, mergeTargetId);
-        await chrome.bookmarks.removeTree(setId);
-        // Switch to the merge target
-        await moveChildren(mergeTargetId, BOOKMARKS_BAR_ID);
-        await setActiveSetId(mergeTargetId);
-      }
-    } else {
-      // Source is inactive: bookmarks are in its folder
-      if (targetIsActive) {
-        // Target is active: move source contents to bar
-        await moveChildren(setId, BOOKMARKS_BAR_ID);
-      } else {
-        // Target is inactive: move source contents to target's folder
-        await moveChildren(setId, mergeTargetId);
-      }
-      await chrome.bookmarks.removeTree(setId);
+      // Activate the merge target
+      await setActiveSetId(mergeTargetId);
+      await populateBarFromFolder(mergeTargetId);
+    } else if (mergeTargetId === activeSetId) {
+      // Target is active — reconcile bar to show merged bookmarks
+      await reconcileBar(mergeTargetId);
     }
   } else {
-    // Delete all bookmarks from this set
+    // Delete set and all its bookmarks
     if (isActive) {
-      // Clear bar contents
-      const barChildren = await chrome.bookmarks.getChildren(BOOKMARKS_BAR_ID);
-      for (const child of barChildren) {
-        await chrome.bookmarks.removeTree(child.id);
-      }
-      // Delete the empty folder
+      await clearBar();
       await chrome.bookmarks.removeTree(setId);
+
       // Activate the first remaining set
       const remaining = (await chrome.bookmarks.getChildren(root.id)).filter(
         (c) => !c.url
       );
       if (remaining.length > 0) {
-        await moveChildren(remaining[0].id, BOOKMARKS_BAR_ID);
         await setActiveSetId(remaining[0].id);
+        await populateBarFromFolder(remaining[0].id);
       } else {
         await setActiveSetId(null);
       }
     } else {
-      // Inactive: removeTree deletes folder + all bookmark contents
       await chrome.bookmarks.removeTree(setId);
     }
   }
@@ -184,14 +189,4 @@ export async function renameSet(
 ): Promise<BookmarkSet[]> {
   await chrome.bookmarks.update(setId, { title: name });
   return getSets();
-}
-
-async function moveChildren(
-  fromId: string,
-  toId: string
-): Promise<void> {
-  const children = await chrome.bookmarks.getChildren(fromId);
-  for (const child of children) {
-    await chrome.bookmarks.move(child.id, { parentId: toId });
-  }
 }
