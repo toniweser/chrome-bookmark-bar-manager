@@ -5,7 +5,7 @@
 
   [![Release](https://img.shields.io/github/v/release/toniweser/chrome-bookmark-bar-manager?style=flat-square)](https://github.com/toniweser/chrome-bookmark-bar-manager/releases)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
-  [![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white)]()
+  [![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
 </div>
 
 ---
@@ -28,7 +28,7 @@ Define named bookmark **sets** (e.g. Work, Personal, Side Project) and instantly
 
 ## Tech Stack
 
-| | |
+| Layer | Technologies |
 |---|---|
 | **Frontend** | TypeScript, React 19, Tailwind CSS v4, Lucide icons |
 | **Extension** | Chrome Manifest V3, Service Worker, Bookmarks API |
