@@ -5,12 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
+    "dev:preview": "vite dev --open /dev.html",
     "build": "tsc && vite build",
     "zip": "tsc && vite build && cd dist && zip -r ../bookmark-bar-manager.zip ."
   },
   "dependencies": {
+    "@base-ui/react": "^1.2.0",
+    "@tailwindcss/vite": "^4.2.1",
+    "lucide-react": "^0.577.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.287",

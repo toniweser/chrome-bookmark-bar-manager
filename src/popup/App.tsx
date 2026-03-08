@@ -13,13 +13,14 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingSet, setDeletingSet] = useState<BookmarkSet | null>(null);
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
 
   const refreshSets = async () => {
     const response = await sendMessage({ type: "GET_SETS" });
     if (response.success && response.data) {
       setSets(response.data);
     } else if (!response.success) {
-      setError(response.error);
+      setError(response.error ?? "Unknown error");
     }
   };
 
@@ -33,18 +34,20 @@ export default function App() {
     if (response.success && response.data) {
       setSets(response.data);
     } else if (!response.success) {
-      setError(response.error);
+      setError(response.error ?? "Unknown error");
     }
   };
 
   const handleSwitch = async (setId: string) => {
     setError(null);
+    setSwitchingId(setId);
     const response = await sendMessage({ type: "SWITCH_SET", setId });
     if (response.success && response.data) {
       setSets(response.data);
     } else if (!response.success) {
-      setError(response.error);
+      setError(response.error ?? "Unknown error");
     }
+    setSwitchingId(null);
   };
 
   const handleDeleteRequest = (set: BookmarkSet) => {
@@ -57,7 +60,7 @@ export default function App() {
     if (response.success && response.data) {
       setSets(response.data);
     } else if (!response.success) {
-      setError(response.error);
+      setError(response.error ?? "Unknown error");
     }
     setDeletingSet(null);
   };
@@ -72,7 +75,7 @@ export default function App() {
     if (response.success && response.data) {
       setSets(response.data);
     } else if (!response.success) {
-      setError(response.error);
+      setError(response.error ?? "Unknown error");
     }
     setDeletingSet(null);
   };
@@ -83,25 +86,44 @@ export default function App() {
     if (response.success && response.data) {
       setSets(response.data);
     } else if (!response.success) {
-      setError(response.error);
+      setError(response.error ?? "Unknown error");
     }
   };
 
   if (loading) {
-    return <div className="app"><p className="loading">Loading...</p></div>;
+    return (
+      <div className="p-4">
+        <p className="text-muted-foreground text-center py-5 text-sm">
+          Loading...
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="app">
-      <h1>Bookmark Sets</h1>
-      {error && <p className="error">{error}</p>}
-      <CreateSetForm onCreateSet={handleCreate} />
+    <div className="p-4 flex flex-col gap-3">
+
+      <div className="flex items-center gap-2 pb-3">
+        <img src="./icons/icon48.png" alt="" className="h-5 w-5" />
+        <h1 className="text-base font-semibold">Bookmark Bar Manager</h1>
+      </div>
+
+      {error && (
+        <div className="rounded-md bg-destructive/15 px-3 py-2 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
+      <CreateSetForm onCreateSet={handleCreate} existingNames={sets.map((s) => s.name)} />
+
       <SetList
         sets={sets}
+        switchingId={switchingId}
         onSwitch={handleSwitch}
         onDelete={handleDeleteRequest}
         onRename={handleRename}
       />
+
       {deletingSet && (
         <DeleteSetDialog
           set={deletingSet}
